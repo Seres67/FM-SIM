@@ -21,22 +21,22 @@ public:
             return;
         auto stats = item->getStats();
 
-        for (auto &stat : stats)
+        for (const std::shared_ptr<IStat> &stat : stats)
         {
-            int min = stat->getMin();
-            int max = stat->getMax();
+            int min = stat->min;
+            int max = stat->max;
 
             if (min == max)
             {
-                stat->setStat(max);
-                stat->setWeight(max * stat->getWeightPerStat());
-                weight += stat->getWeight();
+                stat->stat = max;
+                stat->weight = (max * stat->weight_per_stat);
+                weight += stat->weight;
                 continue;
             }
             std::uniform_int_distribution<> distrib(min, max);
-            stat->setStat(distrib(gen));
-            stat->setWeight(stat->getStat() * stat->getWeightPerStat());
-            weight += stat->getWeight();
+            stat->stat = (distrib(gen));
+            stat->weight = (stat->stat * stat->weight_per_stat);
+            weight += stat->weight;
         }
         item->setWeight(static_cast<float>(weight));
     }

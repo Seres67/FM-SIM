@@ -6,6 +6,18 @@
 #define FM_STATS_HPP
 
 #include <string>
+#include <utility>
+
+template<size_t N>
+struct StringLiteral
+{
+    constexpr explicit StringLiteral(const char (&str)[N])
+    {
+        std::copy_n(str, N, value);
+    }
+
+    char value[N]{};
+};
 
 struct IStat
 {
@@ -15,50 +27,36 @@ struct IStat
     float weight_per_stat;
     float weight;
     int stat_per_rune;
+    const char *name{};
 
-    IStat(int stat, int min, int max, int stat_per_rune, float weight_per_stat) : stat(stat), min(min), max(max), stat_per_rune(stat_per_rune), weight_per_stat(weight_per_stat)
+    IStat(int stat, int min, int max, int stat_per_rune, float weight_per_stat, const char *name) : stat(stat), min(min), max(max), weight_per_stat(weight_per_stat),
+                                                                                                    stat_per_rune(stat_per_rune), name(name)
     {
         weight = static_cast<float>(stat) * weight_per_stat;
+    }
+
+    [[nodiscard]] std::string getName() const
+    {
+        return name;
     };
 
-    [[nodiscard]] float getWeight() const
+    virtual void addNormal() = 0;
+
+    virtual void addPa() = 0;
+
+    virtual void addRa() = 0;
+};
+
+template<int StatPerRune, float WeightPerStat, StringLiteral Name>
+struct AStat : IStat
+{
+    AStat(int stat, int min, int max) : IStat(stat, min, max, StatPerRune, WeightPerStat, Name.value)
     {
-        return weight;
+
     }
 
-    void setWeight(float w)
-    {
-        this->weight = w;
-    }
 
-    [[nodiscard]] int getStat() const
-    {
-        return stat;
-    }
-
-    void setStat(int s)
-    {
-        this->stat = s;
-    }
-
-    [[nodiscard]] int getMin() const
-    {
-        return min;
-    }
-
-    [[nodiscard]] int getMax() const
-    {
-        return max;
-    }
-
-    [[nodiscard]] float getWeightPerStat() const
-    {
-        return weight_per_stat;
-    }
-
-    virtual std::string getName() = 0;
-
-    void addNormal()
+    void addNormal() override
     {
         if (stat + stat_per_rune > max)
             return;
@@ -66,7 +64,7 @@ struct IStat
         weight += stat_per_rune * weight_per_stat;
     }
 
-    void addPa()
+    void addPa() override
     {
         if (stat + stat_per_rune * 3 > max)
             return;
@@ -74,7 +72,7 @@ struct IStat
         weight += (stat_per_rune * 3) * weight_per_stat;
     }
 
-    void addRa()
+    void addRa() override
     {
         if (stat + stat_per_rune * 10 > max)
             return;
@@ -83,706 +81,62 @@ struct IStat
     }
 };
 
-struct Initiative : IStat
+namespace Stats
 {
-    Initiative(int stat, int min, int max) : IStat(stat, min, max, 10, 0.1)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Initiative";
-    }
-};
-
-struct Vitalite : IStat
-{
-    Vitalite(int stat, int min, int max) : IStat(stat, min, max, 5, 0.2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Vitalité");
-    }
-};
-
-struct Pods : IStat
-{
-    Pods(int stat, int min, int max) : IStat(stat, min, max, 10, 0.25)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Pods";
-    }
-};
-
-struct Chance : IStat
-{
-    Chance(int stat, int min, int max) : IStat(stat, min, max, 1, 1)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Chance";
-    }
-};
-
-struct Intelligence : IStat
-{
-    Intelligence(int stat, int min, int max) : IStat(stat, min, max, 1, 1)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Intelligence";
-    }
-};
-
-struct Agilite : IStat
-{
-    Agilite(int stat, int min, int max) : IStat(stat, min, max, 1, 1)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Agilité");
-    }
-};
-
-struct Force : IStat
-{
-    Force(int stat, int min, int max) : IStat(stat, min, max, 1, 1)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Force";
-    }
-};
-
-struct RePou : IStat
-{
-    RePou(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Poussée");
-    }
-};
-
-struct ReCrit : IStat
-{
-    ReCrit(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Critiques");
-    }
-};
-
-struct ReTerre : IStat
-{
-    ReTerre(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Terre");
-    }
-};
-
-struct ReNeutre : IStat
-{
-    ReNeutre(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Neutre");
-    }
-};
-
-struct ReFeu : IStat
-{
-    ReFeu(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Feu");
-    }
-};
-
-struct ReAir : IStat
-{
-    ReAir(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Air");
-    }
-};
-
-struct ReEau : IStat
-{
-    ReEau(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Résistance Eau");
-    }
-};
-
-struct Puissance : IStat
-{
-    Puissance(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Puissance";
-    }
-};
-
-struct PuiPiege : IStat
-{
-    PuiPiege(int stat, int min, int max) : IStat(stat, min, max, 1, 2)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Puissance (pièges)");
-    }
-};
-
-struct Sagesse : IStat
-{
-    Sagesse(int stat, int min, int max) : IStat(stat, min, max, 1, 3)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Sagesse";
-    }
-};
-
-struct Prospection : IStat
-{
-    Prospection(int stat, int min, int max) : IStat(stat, min, max, 1, 3)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Prospection";
-    }
-};
-
-struct Fuite : IStat
-{
-    Fuite(int stat, int min, int max) : IStat(stat, min, max, 1, 4)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Fuite";
-    }
-};
-
-struct Tacle : IStat
-{
-    Tacle(int stat, int min, int max) : IStat(stat, min, max, 1, 4)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Tacle";
-    }
-};
-
-struct Chasse : IStat
-{
-    Chasse(int stat, int min, int max) : IStat(0, 1, 1, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Chasse";
-    }
-};
-
-struct DoPiege : IStat
-{
-    DoPiege(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Dommages Pièges");
-    }
-};
-
-struct DoPou : IStat
-{
-    DoPou(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Dommages Poussée");
-    }
-};
-
-struct DoCri : IStat
-{
-    DoCri(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages Critiques";
-    }
-};
-
-struct DoEau : IStat
-{
-    DoEau(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages Eau";
-    }
-};
-
-struct DoFeu : IStat
-{
-    DoFeu(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages Feu";
-    }
-};
-
-struct DoTerre : IStat
-{
-    DoTerre(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages Terre";
-    }
-};
-
-struct DoAir : IStat
-{
-    DoAir(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages Air";
-    }
-};
-
-struct DoNeutre : IStat
-{
-    DoNeutre(int stat, int min, int max) : IStat(stat, min, max, 1, 5)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages Neutre";
-    }
-};
-
-struct RePerEau : IStat
-{
-    RePerEau(int stat, int min, int max) : IStat(stat, min, max, 1, 6)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance Eau");
-    }
-};
-
-struct RePerFeu : IStat
-{
-    RePerFeu(int stat, int min, int max) : IStat(stat, min, max, 1, 6)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance Feu");
-    }
-};
-
-struct RePerAir : IStat
-{
-    RePerAir(int stat, int min, int max) : IStat(stat, min, max, 1, 6)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance Air");
-    }
-};
-
-struct RePerTerre : IStat
-{
-    RePerTerre(int stat, int min, int max) : IStat(stat, min, max, 1, 6)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance Terre");
-    }
-};
-
-struct RePerNeutre : IStat
-{
-    RePerNeutre(int stat, int min, int max) : IStat(stat, min, max, 1, 6)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance Neutre");
-    }
-};
-
-struct EsquivePa : IStat
-{
-    EsquivePa(int stat, int min, int max) : IStat(stat, min, max, 1, 7)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Esquive PA";
-    }
-};
-
-struct EsquivePm : IStat
-{
-    EsquivePm(int stat, int min, int max) : IStat(stat, min, max, 1, 7)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Esquive PM";
-    }
-};
-
-struct RetraitPa : IStat
-{
-    RetraitPa(int stat, int min, int max) : IStat(stat, min, max, 1, 7)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Retrait PA";
-    }
-};
-
-struct RetraitPm : IStat
-{
-    RetraitPm(int stat, int min, int max) : IStat(stat, min, max, 1, 7)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Retrait PM";
-    }
-};
-
-struct Renvoi : IStat
-{
-    Renvoi(int stat, int min, int max) : IStat(stat, min, max, 1, 10)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Renvoie dommages";
-    }
-};
-
-struct Crit : IStat
-{
-    Crit(int stat, int min, int max) : IStat(stat, min, max, 1, 10)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "% Critique";
-    }
-};
-
-struct Soin : IStat
-{
-    Soin(int stat, int min, int max) : IStat(stat, min, max, 1, 10)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Soin";
-    }
-};
-
-struct RePerMe : IStat
-{
-    RePerMe(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance mêlée");
-    }
-};
-
-struct RePerDi : IStat
-{
-    RePerDi(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance distance");
-    }
-};
-
-struct RePerSo : IStat
-{
-    RePerSo(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance aux sorts");
-    }
-};
-
-struct RePerAr : IStat
-{
-    RePerAr(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Résistance aux armes");
-    }
-};
-
-struct DoPerAr : IStat
-{
-    DoPerAr(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "% Dommages d'armes";
-    }
-};
-
-struct DoPerSo : IStat
-{
-    DoPerSo(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "% Dommages aux sorts";
-    }
-};
-
-struct DoPerMe : IStat
-{
-    DoPerMe(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("% Dommages mêlée");
-    }
-};
-
-struct DoPerDi : IStat
-{
-    DoPerDi(int stat, int min, int max) : IStat(stat, min, max, 1, 15)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "% Dommages distance";
-    }
-};
-
-struct Dommages : IStat
-{
-    Dommages(int stat, int min, int max) : IStat(stat, min, max, 1, 20)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Dommages";
-    }
-};
-
-struct Invocation : IStat
-{
-    Invocation(int stat, int min, int max) : IStat(stat, min, max, 1, 30)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "Invocation";
-    }
-};
-
-struct PO : IStat
-{
-    PO(int stat, int min, int max) : IStat(stat, min, max, 1, 51)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return std::string("Portée");
-    }
-};
-
-struct GaPM : IStat
-{
-    GaPM(int stat, int min, int max) : IStat(stat, min, max, 1, 90)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "PM";
-    }
-};
-
-struct GaPA : IStat
-{
-    GaPA(int stat, int min, int max) : IStat(stat, min, max, 1, 100)
-    {
-
-    }
-
-    std::string getName() override
-    {
-        return "PA";
-    }
-};
+    using Initiative = AStat<10, 0.1f, StringLiteral("Initiative")>;
+    using Vitalite = AStat<5, 0.2f, StringLiteral("Vitalité")>;
+    using Pods = AStat<10, 0.25, StringLiteral("Pods")>;
+    using Chance = AStat<1, 1.f, StringLiteral("Chance")>;
+    using Intelligence = AStat<1, 1.f, StringLiteral("Intelligence")>;
+    using Force = AStat<1, 1.f, StringLiteral("Force")>;
+    using Agilite = AStat<1, 1.f, StringLiteral("Agilité")>;
+    using RePou = AStat<1, 2.f, StringLiteral("Résistance Poussée")>;
+    using ReCri = AStat<1, 2.f, StringLiteral("Résistance Critiques")>;
+    using ReTerre = AStat<1, 2.f, StringLiteral("Résistance Terre")>;
+    using ReAir = AStat<1, 2.f, StringLiteral("Résistance Air")>;
+    using ReFeu = AStat<1, 2.f, StringLiteral("Résistance Feu")>;
+    using ReEau = AStat<1, 2.f, StringLiteral("Résistance Eau")>;
+    using ReNeutre = AStat<1, 2.f, StringLiteral("Résistance Neutre")>;
+    using Puissance = AStat<1, 2.f, StringLiteral("Puissance")>;
+    using PuiPiege = AStat<1, 2.f, StringLiteral("Puissance (pièges)")>;
+    using Sagesse = AStat<1, 3.f, StringLiteral("Sagesse")>;
+    using Prospection = AStat<1, 3.f, StringLiteral("Prospection")>;
+    using Fuite = AStat<1, 4.f, StringLiteral("Fuite")>;
+    using Tacle = AStat<1, 4.f, StringLiteral("Tacle")>;
+    using Chasse = AStat<1, 5.f, StringLiteral("Chasse")>;
+    using DoPiege = AStat<1, 5.f, StringLiteral("Dommages Pièges")>;
+    using DoPou = AStat<1, 5.f, StringLiteral("Dommages Poussée")>;
+    using DoCri = AStat<1, 5.f, StringLiteral("Dommages Critiques")>;
+    using DoAir = AStat<1, 5.f, StringLiteral("Dommages Air")>;
+    using DoFeu = AStat<1, 5.f, StringLiteral("Dommages Feu")>;
+    using DoTerre = AStat<1, 5.f, StringLiteral("Dommages Terre")>;
+    using DoNeutre = AStat<1, 5.f, StringLiteral("Dommages Neutre")>;
+    using DoEau = AStat<1, 5.f, StringLiteral("Dommages Eau")>;
+    using RePerEau = AStat<1, 6.f, StringLiteral("% Résistance Eau")>;
+    using RePerFeu = AStat<1, 6.f, StringLiteral("% Résistance Feu")>;
+    using RePerAir = AStat<1, 6.f, StringLiteral("% Résistance Air")>;
+    using RePerTerre = AStat<1, 6.f, StringLiteral("% Résistance Terre")>;
+    using RePerNeutre = AStat<1, 6.f, StringLiteral("% Résistance Neutre")>;
+    using EsquivePa = AStat<1, 7.f, StringLiteral("Esquive PA")>;
+    using EsquivePm = AStat<1, 7.f, StringLiteral("Esquive PM")>;
+    using RetraitPa = AStat<1, 7.f, StringLiteral("Retrait PA")>;
+    using RetraitPm = AStat<1, 7.f, StringLiteral("Retrait PM")>;
+    using Renvoi = AStat<1, 20.f, StringLiteral("Renvoi")>;
+    using Crit = AStat<1, 10.f, StringLiteral("Critique")>;
+    using Soin = AStat<1, 10.f, StringLiteral("Soin")>;
+    using RePerMe = AStat<1, 15.f, StringLiteral("% Résistance mêlée")>;
+    using RePerDi = AStat<1, 15.f, StringLiteral("% Résistance distance")>;
+    using RePerSo = AStat<1, 15.f, StringLiteral("% Résistance aux sorts")>;
+    using RePerAr = AStat<1, 15.f, StringLiteral("% Résistance aux armes")>;
+    using DoPerMe = AStat<1, 15.f, StringLiteral("% Dommages mêlée")>;
+    using DoPerDi = AStat<1, 15.f, StringLiteral("% Dommages distance")>;
+    using DoPerSo = AStat<1, 15.f, StringLiteral("% Dommages aux sorts")>;
+    using DoPerAr = AStat<1, 15.f, StringLiteral("% Dommages aux armes")>;
+    using Dommages = AStat<1, 20.f, StringLiteral("Dommmages")>;
+    using Invocation = AStat<1, 30.f, StringLiteral("Invocation")>;
+    using PO = AStat<1, 51.f, StringLiteral("Portée")>;
+    using PM = AStat<1, 90.f, StringLiteral("PM")>;
+    using PA = AStat<1, 100.f, StringLiteral("PA")>;
+}
 
 #endif //FM_STATS_HPP

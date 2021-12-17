@@ -23,12 +23,12 @@
 //*>
 
 
-class fm2 : public nana::panel<true>
+class StatLine : public nana::panel<true>
 {
 public:
-    fm2() = default;
+    StatLine() = default;
 
-    explicit fm2(nana::window wd, std::shared_ptr<IStat> stat, const nana::rectangle &r = {}, bool visible = true) : nana::panel<true>(wd, r, visible), m_stat(std::move(stat))
+    explicit StatLine(nana::window wd, std::shared_ptr<IStat> stat, const nana::rectangle &r = {}, bool visible = true) : nana::panel<true>(wd, r, visible), m_stat(std::move(stat))
     {
         this->create(wd, r, visible);
         setMinText(std::to_string(m_stat->min));

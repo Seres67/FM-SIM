@@ -5,12 +5,13 @@
 #ifndef FM_GELANO_HPP
 #define FM_GELANO_HPP
 
+#include <stat/Stats.hpp>
 #include "IItem.hpp"
 
 class Gelano : public IItem
 {
 public:
-    explicit Gelano() : IItem{{std::make_shared<GaPA>(1, 1, 1)}}
+    explicit Gelano() : IItem{{std::make_shared<Stats::PA>(1, 1, 1)}}
     {
 
     }

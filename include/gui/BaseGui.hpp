@@ -14,14 +14,14 @@
 #include <item/IItem.hpp>
 #include <stat/Stats.hpp>
 #include <item/ItemFactory.hpp>
-#include "fm2.h"
+#include "StatLine.hpp"
 
 class BaseGui : public nana::form
 {
 public:
     BaseGui();
 
-    void setItem(std::shared_ptr<IItem> &item);
+    void setItem(const std::shared_ptr<IItem> &item);
     void setItem(IItem *item);
 
     nana::menubar &getMenuBar();
@@ -34,9 +34,9 @@ private:
 
     std::shared_ptr<IItem> m_item = nullptr;
     nana::menubar m_menubar{*this};
-    nana::place m_place{*this};
+    nana::place *m_place = new nana::place(*this);
     std::forward_list<nana::label> m_stat_labels;
-    std::forward_list<fm2> m_stat_list;
+    std::forward_list<StatLine> m_stat_list;
 //    nana::listbox m_listbox{*this, nana::rectangle{30, 30, 710, 740}};
 };
 

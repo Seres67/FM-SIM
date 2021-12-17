@@ -10,4 +10,4 @@ Simulateur de forgemagie 2.26
 1) Installez nana avec vcpkg
 2) Créez un dossier temporaire
 3) Dans ce dossier, lancez `cmake .. -DCMAKE_TOOLCHAIN_FILE=<chemin vers vcpkg>\scripts\buildsystems\vcpkg.cmake` puis `cmake --build .`
-4) lancer `fm.exe`
+4) lancer `fm.exe` dans le dossier `Debug`

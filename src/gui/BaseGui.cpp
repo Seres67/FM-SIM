@@ -6,19 +6,14 @@
 #include <gui/ExistingItemPopup.hpp>
 #include <gui/NewItemPopup.hpp>
 #include <string>
+#include <nana/gui/detail/window_manager.hpp>
 
 BaseGui::BaseGui() : nana::form(nana::rectangle{100, 100, 800, 800})
 {
     caption("Simulateur FM 2.60");
-    m_place.div("vert<margin=[5,5,5,5] gap=2 weight=5% menubar><vert margin=[5,5,5,5] gap=2 weight=8% field1>");
-    m_place["menubar"] << m_menubar;
+    m_place->div("vert<margin=[5,5,5,5] gap=2 weight=5% menubar><vert margin=[5,5,5,5] gap=2 weight=8% field1>");
+    (*m_place)["menubar"] << m_menubar;
     create_menus();
-//    m_listbox.append_header("Min", 60);
-//    m_listbox.append_header("Max", 60);
-//    m_listbox.append_header("Stats", 200);
-//    m_listbox.append_header("", 60);
-//    m_listbox.append_header("Pa", 60);
-//    m_listbox.append_header("Ra", 60);
 }
 
 void BaseGui::create_menus()
@@ -48,7 +43,7 @@ void BaseGui::create_menus()
     });
 }
 
-void BaseGui::setItem(std::shared_ptr<IItem> &item)
+void BaseGui::setItem(const std::shared_ptr<IItem> &item)
 {
     m_item = item;
     ItemFactory::createItem(m_item.get());
@@ -74,18 +69,16 @@ void BaseGui::update_gui()
     if (!m_item)
         return;
     m_stat_list.clear();
+    delete m_place;
+    m_place = new nana::place(*this);
+    m_place->div("vert<margin=[5,5,5,5] gap=2 weight=5% menubar><vert margin=[5,5,5,5] gap=2 weight=8% field1>");
+    (*m_place)["menubar"] << m_menubar;
     auto stats = m_item->getStats();
     for (auto &stat : stats)
     {
         m_stat_list.emplace_front(*this, stat);
         auto &stat_list = m_stat_list.front();
-        m_place["field1"] << stat_list;
+        (*m_place)["field1"] << stat_list;
     }
-    collocate();
-
-//    m_listbox.clear();
-//    auto cat = m_listbox.at(0);
-//    auto &stats = m_item->getStats();
-//    for (auto &stat : stats)
-//        cat.append({std::to_string(stat->getMin()), std::to_string(stat->getMax()), std::string(std::to_string(stat->getStat()) + " " + stat->getName())});
+    m_place->collocate();
 }
